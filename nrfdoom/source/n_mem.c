@@ -29,8 +29,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdlib.h>
+#include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 extern const uint32_t __HeapLimit;
 const uint32_t heapLimit = (uint32_t)&__HeapLimit;
