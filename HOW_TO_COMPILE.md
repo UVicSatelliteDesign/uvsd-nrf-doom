@@ -12,8 +12,15 @@ sudo apt install gcc-arm-none-eabi binutils-arm-none-eabi libnewlib-arm-none-eab
 sudo apt install make git wget
 
 # jlink
-wget https://www.segger.com/downloads/jlink/JLink_Linux_x86_64.deb
-sudo dpkg -i JLink_Linux_x86_64.deb
+# 1. Download from https://www.segger.com/downloads/jlink/
+#    (select "J-Link Software and Documentation Pack for Linux (x86 64-bit)")
+# 2. Copy the .tgz file to your WSL environment
+# Note: you should copy with wsl itself otherwise it might interpret as an HTML file
+cp /mnt/c/Users/<YourWindowsUsername>/Downloads/JLink_Linux_x86_64.tar.gz .
+# 3. Extract and install:
+tar -xzf JLink_Linux_V*.tgz
+sudo mv JLink_Linux_V* /opt/jlink
+sudo ln -s /opt/jlink/JLinkExe /usr/local/bin/jlink
 
 # nrfutil
 wget https://developer.nordicsemi.com/.pc-tools/nrfutil/x64-linux/nrfutil
@@ -39,7 +46,8 @@ git clone https://github.com/UVicSatelliteDesign/uvsd-nrf-doom.git
 # get SDK
 cd ~/Downloads
 wget https://developer.nordicsemi.com/nRF5_SDK/nRF5_SDK_v17.x.x/nRF5_SDK_17.0.2_d674dde.zip
-cd ~/projects/uvsd-nrf-doom  # or wherever your repo is
+# Change to your project Directory
+cd -  # cd ~/projects/uvsd-nrf-doom  # or wherever your repo is
 unzip ~/Downloads/nRF5_SDK_17.0.2_d674dde.zip -d nRF5_SDK/
 
 # get nrfx 2.4.0
@@ -56,7 +64,7 @@ three fixes needed for compatibility with nrfx 2.4.0 and modern gcc:
 
 **1. fix include paths**
 ```bash
-cd ~/projects/uvsd-nrf-doom  # your repo root
+cd ../../..  # Change to your repo root
 sed -i 's|cmsis/Include|cmsis/include|g' nrfdoom/nrf5340dk/armgcc/Makefile
 sed -i 's|cmsis/Include|cmsis/include|g' nrfdoom_net/Makefile
 ```
@@ -83,6 +91,18 @@ nrfx_spim_config_t config_spim = NRFX_SPIM_DEFAULT_CONFIG(
 ```bash
 sed -i 's/nrf_spi_frequency_t/nrf_spim_frequency_t/g' nRF5_SDK/components/libraries/sdcard/app_sdcard.c
 ```
+
+**4. fix Makefile**
+edit `nRF5_SDK/components/toolchain/gcc/Makefile.posix`
+
+change:
+```c
+GNU_INSTALL_ROOT ?= /usr/local/gcc-arm-none-eabi-7-2018-q2-update/bin/
+```
+
+to:
+```c
+GNU_INSTALL_ROOT ?= /usr/bin/
 
 ## build
 
