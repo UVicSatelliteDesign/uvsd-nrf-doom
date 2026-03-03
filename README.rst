@@ -1,3 +1,8 @@
+UVSD-DOOM
+=========
+
+For a guide on compilation see `HOW_TO_COMPILE.md`
+
 
 nRF-Doom
 =======================================================
