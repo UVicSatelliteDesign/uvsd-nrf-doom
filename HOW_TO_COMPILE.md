@@ -2,7 +2,7 @@
 
 quick guide to get nRF-Doom compiling on Ubuntu with modern toolchains
 
-## install prereqs
+## Install Prereqs
 
 ```bash
 # arm compiler
@@ -34,7 +34,7 @@ sudo usermod -a -G dialout $USER
 newgrp dialout
 ```
 
-## setup
+## Setup
 
 ```bash
 # download repo somewhere you keep your projects
@@ -58,7 +58,7 @@ cd nrfx
 git checkout v2.4.0
 ```
 
-## required code changes
+## Required Code Changes
 
 three fixes needed for compatibility with nrfx 2.4.0 and modern gcc:
 
@@ -103,8 +103,10 @@ GNU_INSTALL_ROOT ?= /usr/local/gcc-arm-none-eabi-7-2018-q2-update/bin/
 to:
 ```c
 GNU_INSTALL_ROOT ?= /usr/bin/
+```
 
-## build
+
+## Build
 
 ```bash
 # network core first
@@ -118,7 +120,9 @@ make
 
 warnings about _close, _fstat etc are normal
 
-## flash
+## Flash
+**Note:** The nRF5340 DK has two micro USB ports. Both must be connected for programming/flashing:
+Connect both USB ports, Debug port to your PC for programming, and nRF USB port for board power. Both are required for flashing.
 
 ```bash
 # check board detected
@@ -133,7 +137,7 @@ cd ../nrfdoom/nrf5340dk/armgcc
 make flash
 ```
 
-## test
+## Test
 
 ```bash
 # check UART
