@@ -1,62 +1,87 @@
-# nRF-Doom Build Guide
+# nRF-DOOM Build Guide
 
-quick guide to get nRF-Doom compiling on Ubuntu with modern toolchains
+## Dependencies
 
-## Install Prereqs
+### Ubuntu
 
-```bash
-# arm compiler
-sudo apt install gcc-arm-none-eabi binutils-arm-none-eabi libnewlib-arm-none-eabi
+These directions were written by Seth, and work for a modern Ubuntu distro (and possibly WSL too?)
 
-# other tools
-sudo apt install make git wget
+1. Install common dev tools
+    ```bash
+    sudo apt install make get wget
+    ```
+1. Install the ARM Embedded Toolchain
+    ```bash
+    sudo apt install gcc-arm-none-eabi binutils-arm-none-eabi libnewlib-arm-none-eabi
+    ```
+1. Install JLink (https://www.segger.com/downloads/jlink)
+    ```bash
+    cp /mnt/c/Users/<YourWindowsUsername>/Downloads/JLink_Linux_x86_64.tar.gz .
 
-# jlink
-# 1. Download from https://www.segger.com/downloads/jlink/
-#    (select "J-Link Software and Documentation Pack for Linux (x86 64-bit)")
-# 2. Copy the .tgz file to your WSL environment
-# Note: you should copy with wsl itself otherwise it might interpret as an HTML file
-cp /mnt/c/Users/<YourWindowsUsername>/Downloads/JLink_Linux_x86_64.tar.gz .
-# 3. Extract and install:
-tar -xzf JLink_Linux_V*.tgz
-sudo mv JLink_Linux_V* /opt/jlink
-sudo ln -s /opt/jlink/JLinkExe /usr/local/bin/jlink
+    tar -xzf JLink_Linux_V*.tgz
+    sudo mv JLink_Linux_V* /opt/jlink
+    sudo ln -s /opt/jlink/JLinkExe /usr/local/bin/jlink
+    ```
+1. Install the `nrfutil` commandline tool
+    ```bash
+    wget https://developer.nordicsemi.com/.pc-tools/nrfutil/x64-linux/nrfutil
+    chmod +x nrfutil
+    sudo mv nrfutil /usr/local/bin/
+    nrfutil install nrf5sdk-tools
+    nrfutil install device
+    ```
+1. Fix permissions to access serial ports
+    ```bash
+    sudo usermod -a -G dialout $USER
+    newgrp dialout
+    ```
 
-# nrfutil
-wget https://developer.nordicsemi.com/.pc-tools/nrfutil/x64-linux/nrfutil
-chmod +x nrfutil
-sudo mv nrfutil /usr/local/bin/
-nrfutil install nrf5sdk-tools
-nrfutil install device
+### MacOS
 
-# permissions
-sudo usermod -a -G dialout $USER
-newgrp dialout
-```
+These directions were written by Pierson, and work for a modern MacOS version with Homebrew installed.
 
-## Setup
+1. Install common dev tools
+    ```bash
+    brew install minicom
+    ```
+1. Install the ARM Embedded Toolchain
+    ```bash
+    brew install --cask gcc-arm-embedded
+    ```
+1. Install JLink, from https://www.segger.com/downloads/jlink
+1. Install the nRF Command Line Tools from https://www.nordicsemi.com/Products/Development-tools/nrf-command-line-tools/download
+1. Install the `nrfutil` commandline tool
+    ```bash
+    curl https://files.nordicsemi.com/artifactory/swtools/external/nrfutil/executables/universal-apple-darwin/nrfutil \
+        -o /usr/local/bin/nrfutil
+    chmod +x /usr/local/bin/nrfutil
+    
+    nrfutil install nrf5sdk-tools
+    nrfutil install device
+    ```
+
+## Set up Git repository
 
 ```bash
 # download repo somewhere you keep your projects
 git clone https://github.com/UVicSatelliteDesign/uvsd-nrf-doom.git
-
+cd ~/projects/uvsd-nrf-doom # or wherever your repo is
 ```
 
-```bash
-# get SDK
-cd ~/Downloads
-wget https://developer.nordicsemi.com/nRF5_SDK/nRF5_SDK_v17.x.x/nRF5_SDK_17.0.2_d674dde.zip
-# Change to your project Directory
-cd -  # cd ~/projects/uvsd-nrf-doom  # or wherever your repo is
-unzip ~/Downloads/nRF5_SDK_17.0.2_d674dde.zip -d nRF5_SDK/
-
-# get nrfx 2.4.0
-cd nRF5_SDK/modules/
-rm -rf nrfx
-git clone https://github.com/NordicSemiconductor/nrfx.git
-cd nrfx
-git checkout v2.4.0
-```
+1. Download the nRF SDK from https://www.nordicsemi.com/Products/Development-software/nRF5-SDK/Download
+    None of the SoftDevices shown are necessary.
+1. Unzip the SDK into the gitignored folder `nRF5_SDK`
+    ```bash
+    unzip ~/Downloads/nRF5_SDK_17.0.2_d674dde.zip -d nRF5_SDK/
+    ```
+1. Install the `nrfx` drivers
+    ```bash
+    cd nRF5_SDK/modules/
+    rm -rf nrfx
+    git clone https://github.com/NordicSemiconductor/nrfx.git
+    cd nrfx
+    git checkout v2.4.0
+    ```
 
 ## Required Code Changes
 
@@ -105,6 +130,15 @@ to:
 GNU_INSTALL_ROOT ?= /usr/bin/
 ```
 
+## Configure `minicom`
+
+1. Run `minicom` with the `--setup` flag
+    ```bash
+    minicom --setup
+    ```
+1. Use arrow keys to navigate to **Screen**, then press Enter
+1. Press the `R` and `T` keys to toggle **Line Wrap** and **Add Carriage Return** on
+1. Press `Esc` twice to exit the setup menu
 
 ## Build
 
@@ -121,8 +155,11 @@ make
 warnings about _close, _fstat etc are normal
 
 ## Flash
-**Note:** The nRF5340 DK has two micro USB ports. Both must be connected for programming/flashing:
-Connect both USB ports, Debug port to your PC for programming, and nRF USB port for board power. Both are required for flashing.
+The nRF5340 DK has two micro USB ports. Both must be connected for programming/flashing.
+
+The debug port is placed midway along the short edge of the board. It should be connected to your PC for programming.
+
+The nRF USB port is placed offset along the long edge of the board. It should be connected to a power source (which may or may not be your PC) to supply power to the board.
 
 ```bash
 # check board detected
@@ -139,18 +176,18 @@ make flash
 
 ## Test
 
-```bash
-# check UART
-minicom -D /dev/ttyACM1 -b 115200
+1. Check for connected devices
+    ```bash
+    nrfutil device list
+    ```
+    Make note of the output of this command. Two ports should be listed: depending on your platform they may look like `/dev/ttyACM1` or `/dev/tty.usbmodem0010500781223`.
+2. Listen over the UART ports
+    ```bash
+    minicom -D <port> -b 115200
+    ```
+    You may need to test both ports and see which one works.
 
-# or just cat it
-cat /dev/ttyACM1
-
-# reset board
-nrfutil device reset --reset-kind RESET_SYSTEM
-```
-
-LED 3 should be on when running
+LED 3 should be on when running.
 
 ## SD card
 
