@@ -1,5 +1,7 @@
 # nRF-DOOM Build Guide
 
+This guide details how to prepare your development environment manually. For a script that automates some of this process, follow the [HOW_TO_SCRIPT](./HOW_TO_SCRIPT.md) guide instead.
+
 ## Dependencies
 
 ### Ubuntu
