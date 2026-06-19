@@ -181,27 +181,32 @@ static void N_fs_close(FIL *fstream)
 size_t N_fs_read(FIL *fstream, unsigned int offset, void *buffer, size_t buffer_len)
 {
     if (!fs) I_Error("N_fs_open: fs not iniitialized\n");
-    size_t result;
     FRESULT ff_result;
-
-    // Jump to the specified position in the file.
 
     ff_result = f_lseek(fstream, offset);
     if (ff_result != FR_OK)
     {
-        printf("W_FatFS_Read: seek failed\n");
-        return 0;
-    }
-    // Read into the buffer.
-
-    ff_result = f_read(fstream, buffer, buffer_len, &result);
-    if (ff_result != FR_OK)
-    {
-        printf("W_FatFS_Read: seek failed\n");
+        printf("W_FatFS_Read: seek failed, FRESULT=%d\n", ff_result);
         return 0;
     }
 
-    return result;
+    // Read in 512-byte chunks so FatFS issues CMD17 (single-sector) reads
+    // instead of CMD18 (multi-sector), which the nRF SDK SD driver fails on.
+    size_t total = 0;
+    while (total < buffer_len) {
+        size_t chunk = buffer_len - total;
+        if (chunk > 512) chunk = 512;
+        size_t got;
+        ff_result = f_read(fstream, (uint8_t *)buffer + total, chunk, &got);
+        if (ff_result != FR_OK)
+        {
+            printf("W_FatFS_Read: read failed at offset %u, FRESULT=%d\n", offset + total, ff_result);
+            return total;
+        }
+        if (got == 0) break;
+        total += got;
+    }
+    return total;
 }
 
 
