@@ -27,7 +27,7 @@ INC_FOLDERS += \
   $(PROJ_DIR)/config \
   $(SDK_ROOT)/config \
   $(SDK_ROOT)/modules/nrfx/mdk \
-  $(SDK_ROOT)/components/toolchain/cmsis/Include \
+  $(SDK_ROOT)/components/toolchain/cmsis/include \
   $(SDK_ROOT)/components/libraries/delay \
   $(SDK_ROOT)/components/libraries/util \
   $(SDK_ROOT)/modules/nrfx \

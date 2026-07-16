@@ -118,7 +118,7 @@ INC_FOLDERS += \
 	$(PROJ_DIR) \
 	$(PROJ_DIR)/config \
 	$(SDK_ROOT)/modules/nrfx/mdk \
-	$(SDK_ROOT)/components/toolchain/cmsis/Include \
+	$(SDK_ROOT)/components/toolchain/cmsis/include \
 	$(SDK_ROOT)/modules/nrfx \
 	$(SDK_ROOT)/modules/nrfx/hal \
 	$(SDK_ROOT)/modules/nrfx/drivers/include \

@@ -59,7 +59,8 @@
 
 #include "board_config.h"
 
-int no_sdcard = 1;
+// int no_sdcard = 1;
+int no_sdcard = 0;
 
 void D_DoomMain (void);
 void M_ArgvInit(void);
