@@ -61,6 +61,8 @@ void N_display_gpiote_clear() {
   NRF_DISPLAY_GPIOTE->CONFIG[0] = 0;
 }
 
+// TODO:::::::: UVSD TOTO investigate this file and see if this is where we want to output frame data to spi through
+
 void N_display_spi_init() {
 
   // Set up GPIO pins

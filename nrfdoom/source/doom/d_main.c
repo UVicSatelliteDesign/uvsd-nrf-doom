@@ -1481,6 +1481,8 @@ void D_DoomMain (void)
 
     // Find main IWAD file and load it.
     if (no_sdcard) {
+        
+        I_Error ("Didn't read SD card\n");
         iwadfile = "doom.wad";
     }
     else {

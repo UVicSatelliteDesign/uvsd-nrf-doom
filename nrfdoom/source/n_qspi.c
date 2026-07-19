@@ -125,6 +125,32 @@ static void configure_memory(void)
     APP_ERROR_CHECK(err_code);
     printf("N_qspi:   %x %x\n", rxdata[0], rxdata[1]);
 
+    // Set QE (status bit 6, enables the quad opcodes used by
+    // NRFX_QSPI_CONFIG_READOC/WRITEOC) and the L/H switch (config-2 bit 1,
+    // high-performance mode). Both bits are non-volatile on the MX25R6435F,
+    // so chips that have run before may already have them set — but a
+    // factory-fresh chip has QE=0, and then quad page programs are silently
+    // ignored and quad/XIP reads return garbage.
+    printf("N_qspi: Write status/config (quad enable + high performance)\n");
+    data[0] = QSPI_SR_QUAD_ENABLE_BYTE;
+    data[1] = 0x00;
+    data[2] = 0x02;
+    cinstr_cfg.opcode = QSPI_STD_CMD_WRSR;
+    cinstr_cfg.length = NRF_QSPI_CINSTR_LEN_4B;
+    err_code = nrfx_qspi_cinstr_xfer(&cinstr_cfg, data, NULL);
+    APP_ERROR_CHECK(err_code);
+
+    printf("N_qspi: Read status after quad enable (expect bit 0x40 set)\n");
+    cinstr_cfg.opcode = QSPI_STD_CMD_RDSR;
+    cinstr_cfg.length = NRF_QSPI_CINSTR_LEN_2B;
+    data[0] = 0;
+    err_code = nrfx_qspi_cinstr_xfer(&cinstr_cfg, data, rxdata);
+    APP_ERROR_CHECK(err_code);
+    printf("N_qspi:   %x\n", rxdata[0]);
+    if (!(rxdata[0] & QSPI_SR_QUAD_ENABLE_BYTE)) {
+        I_Error("N_qspi: quad enable bit did not stick");
+    }
+
     /*
     // Send reset enable
     err_code = nrfx_qspi_cinstr_xfer(&cinstr_cfg, NULL, NULL);

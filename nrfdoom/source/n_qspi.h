@@ -32,6 +32,7 @@
 #include <stdlib.h>
 
 #define N_QSPI_XIP_START_ADDR      0x12000000
+// #define N_QSPI_XIP_START_ADDR      0x00000000
 
 #define N_QSPI_BLOCK_SIZE (64*1024)
 

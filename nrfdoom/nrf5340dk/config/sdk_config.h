@@ -51,5 +51,7 @@
 // <268435456=> 1 MHz 
 // <536870912=> 2 MHz 
 // <1073741824=> 4 MHz 
-// <2147483648=> 8 MHz 
+// <2147483648=> 8 MHz
+// if 4 MHz runs into issues try 1 MHz but transfer speed will be slower.
+// /* #define APP_SDCARD_FREQ_DATA 268435456 */
 #define APP_SDCARD_FREQ_DATA 1073741824
