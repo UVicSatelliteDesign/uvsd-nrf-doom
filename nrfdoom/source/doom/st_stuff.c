@@ -959,6 +959,11 @@ void ST_Ticker (void)
 
 static int st_palette = 0;
 
+int ST_GetPaletteIndex(void)
+{
+    return st_palette;
+}
+
 void ST_doPaletteStuff(void)
 {
     int         palette;

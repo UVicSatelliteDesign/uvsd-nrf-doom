@@ -46,6 +46,7 @@
 #include "n_display.h"
 
 #include "n_uart.h"
+#include "n_frame_uart.h"
 #include "n_qspi.h"
 #include "n_fs.h"
 #include "n_buttons.h"
@@ -137,28 +138,36 @@ int main(void)
     clock_initialization();
 
     N_uart_init();
+    N_frame_uart_init();
 
     printf("\n\n");
     printf("----------------------------------\n");
     printf("UART Initialized\n");
     printf("---------------------------------\n");
+    printf("Boot: frame stream UART ready (1 Mbaud)\n");
 
     NRF_CACHE_S->ENABLE = 1;
 
+    printf("Boot: waking network core\n");
     boot_net();
 
+    printf("Boot: QSPI flash\n");
     N_qspi_init();
 
     if (!no_sdcard) {
+        printf("Boot: SD card filesystem\n");
         N_fs_init();
     }
 
+    printf("Boot: buttons\n");
     N_ButtonsInit();
 
+    printf("Boot: I2S audio\n");
     N_I2S_init();
 
     M_ArgvInit();
 
+    printf("Boot: handing off to Doom\n");
     D_DoomMain();
 
     while (true)

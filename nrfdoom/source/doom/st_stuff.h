@@ -48,6 +48,10 @@ void ST_Drawer (boolean fullscreen, boolean refresh);
 // Called when the console player is spawned on each level.
 void ST_Start (void);
 
+// Index into the PLAYPAL lump of the currently active palette
+// (damage/bonus/radiation tint). See ST_doPaletteStuff.
+int ST_GetPaletteIndex (void);
+
 // Called by startup code.
 void ST_Init (void);
 

@@ -3,6 +3,20 @@
 
 #define NRF_UARTE  NRF_UARTE1_S
 
+// Second, TX-only UART used to stream rendered frames to a ground-station
+// receiver. UARTE1 above is already shared by debug printf and gamepad
+// input. UARTE2 (SERIAL2) is used because on the nRF5340 UARTE0 shares one
+// serial block (SERIAL0) with SPIM0, which the SD card driver needs
+// (APP_SDCARD_SPI_INSTANCE 0) — enabling both hangs SD init. P1.01 is the TXD line of
+// the DK interface MCU's second virtual COM port (VCOM1; VCOM0 = P0.20/P0.22
+// is the debug console), so frames arrive over the J-Link USB cable with no
+// external wiring. For an external bridge (Pi Pico OBC), switch back to a
+// header pin such as P0.10 (free GPIO: NFC is disabled on this board).
+#define NRF_FRAME_UARTE NRF_UARTE2_S
+#define UART0_TX_PIN NRF_GPIO_PIN_MAP(1, 1)
+// Previous mapping — header pin for an external bridge (FT232H, Pi Pico):
+// #define UART0_TX_PIN NRF_GPIO_PIN_MAP(0, 10)
+
 // Display
 #define NRF_DISPLAY_SPIM   NRF_SPIM4_S
 #define NRF_DISPLAY_GPIOTE NRF_GPIOTE0_S
