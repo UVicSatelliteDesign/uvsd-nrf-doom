@@ -1,20 +1,23 @@
-# network core first
-cd nrfdoom_net
+#!/usr/bin/env bash
+set -e
+
+REPO_ROOT="$(cd "$(dirname "$0")" && pwd)"
+
+# Build network core
+cd "$REPO_ROOT/nrfdoom_net"
 make
 
-# then app core
-cd ../nrfdoom/nrf5340dk/armgcc
+# Build app core
+cd "$REPO_ROOT/nrfdoom/nrf5340dk/armgcc"
 make
 
-# Flash Board
-
-# check board detected
+# Check board is detected
 nrfutil device list
 
-# flash network first
-cd nrfdoom_net
+# Flash network core first
+cd "$REPO_ROOT/nrfdoom_net"
 make flash
 
-# then app
-cd ../nrfdoom/nrf5340dk/armgcc
+# Flash app core
+cd "$REPO_ROOT/nrfdoom/nrf5340dk/armgcc"
 make flash
