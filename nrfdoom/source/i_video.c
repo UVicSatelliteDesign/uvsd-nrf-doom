@@ -42,7 +42,9 @@
 #include "n_buttons.h"
 #include "n_display.h"
 #include "n_uart.h"
+#include "n_frame_uart.h"
 #include "n_rjoy.h"
+#include "doom/st_stuff.h"
 
 #include "FT810.h"
 
@@ -339,6 +341,19 @@ void I_FinishUpdate (void)
 
     // Start frame buffer transfer
     N_display_spi_wr(display_vbuffer_locs[current_dl], SCREENWIDTH*SCREENHEIGHT, (uint8_t*)I_VideoBuffer);
+
+    // Ground-station prototype: mirror every Nth frame out over the frame
+    // UART (see n_frame_uart.h). Skipping frames keeps this from competing
+    // too much with the display SPI transfer above.
+#define FRAME_UART_SKIP 6
+    {
+        static int frame_uart_counter = 0;
+        if (++frame_uart_counter >= FRAME_UART_SKIP)
+        {
+            frame_uart_counter = 0;
+            N_frame_uart_send_frame((uint8_t*)I_VideoBuffer, SCREENWIDTH, SCREENHEIGHT, (uint8_t)ST_GetPaletteIndex());
+        }
+    }
 
     // Restore background and undo the disk indicator, if it was drawn.
     // NRFD-TODO: V_RestoreDiskBackground();

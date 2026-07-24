@@ -17,6 +17,7 @@ SRC_FILES += \
 	$(PROJ_DIR)/main.c \
 	$(PROJ_DIR)/retarget.c \
 	$(PROJ_DIR)/n_uart.c \
+	$(PROJ_DIR)/n_frame_uart.c \
 	$(PROJ_DIR)/n_qspi.c \
 	$(PROJ_DIR)/n_fs.c \
 	$(PROJ_DIR)/n_mem.c \

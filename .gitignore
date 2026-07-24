@@ -5,3 +5,4 @@ log.log
 Output
 *.emSession
 *.jlink
+__pycache__/

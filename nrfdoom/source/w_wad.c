@@ -141,6 +141,8 @@ wad_file_t *W_AddFile (char *filename)
     filelump_t *filerover;
     // lumpinfo_t *filelumps;
 
+    // Transfer only runs when Button 1 is held during reset (checked just
+    // below); otherwise the copy already in QSPI flash is used as-is.
     boolean do_wad_transfer = false;
 
     N_ReadButtons();
@@ -149,6 +151,7 @@ wad_file_t *W_AddFile (char *filename)
 
     if (N_ButtonState(0)) {
         do_wad_transfer = true;
+        printf("Button 1 held: WAD transfer from SD card requested\n");
     }
 
     /* NRFD-EXCLUDE:
@@ -214,16 +217,37 @@ wad_file_t *W_AddFile (char *filename)
     else
     {
         // Copy entire WAD file to Flash memory
-
-        long file_size = 4196366;
+        // long file_size = 4196366; // this was origonal file size
+        long file_size = 4196020;
         if (!no_sdcard) {
             file_size = N_fs_size(wad_file);
         }
         printf("File size: %ld\n", file_size);
 
+
+        // Debug: WAD header straight off the SD card, before any QSPI
+        // activity. A healthy card and wiring prints 49 57 41 44 ("IWAD").
+        uint8_t test_buf[4];
+        size_t test_read = N_fs_read(wad_file, 0, test_buf, 4);
+        printf("SD check (pre-QSPI): %d bytes: %02x %02x %02x %02x (expect 49 57 41 44 = IWAD)\n",
+               test_read, test_buf[0], test_buf[1], test_buf[2], test_buf[3]);
+
+
         int num_blocks = (file_size + N_QSPI_BLOCK_SIZE - 1) / N_QSPI_BLOCK_SIZE;
         N_qspi_reserve_blocks(num_blocks);
+
+        // Debug: same read again after QSPI block reserve, to catch the SD
+        // bus being disturbed by QSPI setup. If pre-QSPI was right and this
+        // is garbage, suspect the QSPI/SD pin or serial-block config.
+        size_t test_read2 = N_fs_read(wad_file, 0, test_buf, 4);
+        printf("SD check (post-QSPI): %d bytes: %02x %02x %02x %02x = \"%c%c%c%c\"\n",
+               test_read2, test_buf[0], test_buf[1], test_buf[2], test_buf[3],
+               test_buf[0], test_buf[1], test_buf[2], test_buf[3]);
         if (!no_sdcard) {
+            // Debug: confirm the file handle still seeks before the copy loop.
+            FRESULT pre_malloc_seek = f_lseek(wad_file, 0);
+            printf("Seek to WAD start: FRESULT=%d (0 = OK), handle %p\n", pre_malloc_seek, wad_file);
+
             uint8_t *block_data = N_malloc(N_QSPI_BLOCK_SIZE);
             int block_loc = 0;
             uint8_t *qspi_data = N_qspi_data_pointer(0);
@@ -250,18 +274,21 @@ wad_file_t *W_AddFile (char *filename)
             */
             
             if (data_mismatch) {
-                printf("Uploading WAD data to QSPI flash memory..");
+                printf("Uploading WAD to QSPI flash: %ld bytes in %d blocks\n", file_size, num_blocks);
                 block_loc = 0;
                 for (i = 0; i<num_blocks; i++) {
                     printf("Copying block %d of %d\n", i, num_blocks);
                     int block_next = block_loc + N_QSPI_BLOCK_SIZE;
                     int block_size = block_next > file_size ? (file_size%N_QSPI_BLOCK_SIZE) : N_QSPI_BLOCK_SIZE;
-                    printf("N_fs_read\n");
+                    printf("  SD read: %d bytes at offset %d\n", block_size, block_loc);
                     N_fs_read(wad_file, block_loc, block_data, block_size);
-                    printf("N_qspi_write_block\n");
+                    printf("  QSPI write:\n");
                     N_qspi_write_block(block_loc, block_data, block_size);
                     block_loc = block_next;
                 }
+                printf("WAD upload complete: %d blocks written\n", num_blocks);
+            } else {
+                printf("WAD transfer not requested; using existing QSPI contents\n");
             }
             N_free(block_data);
         }
@@ -271,7 +298,7 @@ wad_file_t *W_AddFile (char *filename)
 
         // WAD file
         // W_Read(wad_file, 0, &header, sizeof(header));
-
+        // I_Error("First 4 bytes of WAD file: %s \n", header_ptr->identification);
         if (strncmp(header_ptr->identification,"IWAD",4))
         {
             // Homebrew levels?

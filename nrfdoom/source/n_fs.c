@@ -97,7 +97,7 @@ void N_fs_init()
     ff_result = f_mount(fs, "", 1);
     if (ff_result)
     {
-        printf("Mount failed.\n");
+        printf("Mount failed.\nff_result: %d\n", ff_result);
         return;
     }
 
