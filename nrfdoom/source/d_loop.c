@@ -745,6 +745,28 @@ void TryRunTics (void)
     if (counts < 1)
         counts = 1;
 
+
+
+//Pause when not recieving any input
+
+    do {
+        N_rjoy_read();
+
+        //Get joystick data without dropping events
+
+        event_t *ev;
+        ev = &events[--eventhead];
+
+        if (eventhead < 0) eventhead += MAXEVENTS;
+
+//loop if no buttons or joystick input
+    } while (ev->data1 == 0 && ev->data2 == 0 && ev->data3 == 0);
+
+
+
+
+
+
     // wait for new tics if needed
     while (!PlayersInGame() || lowtic < gametic/ticdup + counts)
     {
@@ -763,7 +785,7 @@ void TryRunTics (void)
             // forever - give the menu a chance to work.
             if (I_GetTime() / ticdup - entertic >= MAX_NETGAME_STALL_TICS)
             {
-                return;
+                return; m 
             }
 
             I_Sleep(1);
