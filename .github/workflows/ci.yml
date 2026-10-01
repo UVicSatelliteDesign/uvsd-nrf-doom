@@ -59,11 +59,16 @@ jobs:
           git clone -c advice.detachedHead=false --depth 1 -b "$NRFX_VERSION" \
             https://github.com/NordicSemiconductor/nrfx.git nRF5_SDK/modules/nrfx
 
+      # Run make from inside each project dir (not `make -C`): the SDK's
+      # Makefile.common captures sub-make output, and the "Entering/Leaving
+      # directory" lines that -C adds end up on the linker command line.
       - name: Build network core (nrfdoom_net)
-        run: make -C nrfdoom_net -j"$(nproc)"
+        working-directory: nrfdoom_net
+        run: make --no-print-directory -j"$(nproc)"
 
       - name: Build app core (nrfdoom)
-        run: make -C nrfdoom/nrf5340dk/armgcc -j"$(nproc)"
+        working-directory: nrfdoom/nrf5340dk/armgcc
+        run: make --no-print-directory -j"$(nproc)"
 
       - name: Upload firmware
         uses: actions/upload-artifact@v4
