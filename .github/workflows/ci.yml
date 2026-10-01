@@ -1,0 +1,75 @@
+name: CI
+
+# Build check for both nRF5340 cores. Flashing and on-board testing stay manual
+# (see HOW_TO_COMPILE.md); this only proves the firmware still compiles and links.
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NRF_SDK_VERSION: 17.1.0_ddde560
+  NRF_SDK_URL: https://developer.nordicsemi.com/nRF5_SDK/nRF5_SDK_v17.x.x/nRF5_SDK_17.1.0_ddde560.zip
+  NRFX_VERSION: v2.4.0
+
+jobs:
+  build:
+    name: Firmware Build (arm-none-eabi-gcc)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install ARM toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            gcc-arm-none-eabi binutils-arm-none-eabi libnewlib-arm-none-eabi
+          arm-none-eabi-gcc --version
+
+      - name: Cache nRF5 SDK
+        id: sdk-cache
+        uses: actions/cache@v4
+        with:
+          path: nRF5_SDK
+          key: nrf5-sdk-${{ env.NRF_SDK_VERSION }}-nrfx-${{ env.NRFX_VERSION }}-${{ hashFiles('.github/workflows/ci.yml') }}
+
+      # Same steps as setup.sh, minus the interactive and hardware-only parts.
+      - name: Download and patch nRF5 SDK
+        if: steps.sdk-cache.outputs.cache-hit != 'true'
+        run: |
+          curl --fail --location --silent --show-error -o /tmp/nrf_sdk.zip "$NRF_SDK_URL"
+          unzip -q /tmp/nrf_sdk.zip -d /tmp/nrf_sdk
+          mv "/tmp/nrf_sdk/nRF5_SDK_${NRF_SDK_VERSION}" nRF5_SDK
+
+          sed -i 's/NRFX_SPIM_DEFAULT_CONFIG;/NRFX_SPIM_DEFAULT_CONFIG(NRF_DRV_SPI_PIN_NOT_USED, NRF_DRV_SPI_PIN_NOT_USED, NRF_DRV_SPI_PIN_NOT_USED, NRF_DRV_SPI_PIN_NOT_USED);/' \
+            nRF5_SDK/integration/nrfx/legacy/nrf_drv_spi.c
+          sed -i 's/nrf_spi_frequency_t/nrf_spim_frequency_t/g' \
+            nRF5_SDK/components/libraries/sdcard/app_sdcard.c
+          sed -i 's|GNU_INSTALL_ROOT ?= .*|GNU_INSTALL_ROOT ?= /usr/bin/|' \
+            nRF5_SDK/components/toolchain/gcc/Makefile.posix
+
+          rm -rf nRF5_SDK/modules/nrfx
+          git clone -c advice.detachedHead=false --depth 1 -b "$NRFX_VERSION" \
+            https://github.com/NordicSemiconductor/nrfx.git nRF5_SDK/modules/nrfx
+
+      - name: Build network core (nrfdoom_net)
+        run: make -C nrfdoom_net -j"$(nproc)"
+
+      - name: Build app core (nrfdoom)
+        run: make -C nrfdoom/nrf5340dk/armgcc -j"$(nproc)"
+
+      - name: Upload firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: nrfdoom-firmware
+          path: |
+            nrfdoom_net/_build/*.hex
+            nrfdoom/nrf5340dk/armgcc/_build/*.hex
+          if-no-files-found: error
