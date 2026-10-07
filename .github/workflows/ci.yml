@@ -24,7 +24,7 @@ jobs:
     name: Firmware Build (arm-none-eabi-gcc)
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install ARM toolchain
         run: |
@@ -35,7 +35,7 @@ jobs:
 
       - name: Cache nRF5 SDK
         id: sdk-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: nRF5_SDK
           key: nrf5-sdk-${{ env.NRF_SDK_VERSION }}-nrfx-${{ env.NRFX_VERSION }}-${{ hashFiles('.github/workflows/ci.yml') }}
@@ -71,7 +71,7 @@ jobs:
         run: make --no-print-directory -j"$(nproc)"
 
       - name: Upload firmware
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: nrfdoom-firmware
           path: |
