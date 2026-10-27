@@ -26,7 +26,7 @@ These directions were written by Seth, and work for a modern Ubuntu distro (and 
     ```
 1. Install the `nrfutil` commandline tool
     ```bash
-    wget https://developer.nordicsemi.com/.pc-tools/nrfutil/x64-linux/nrfutil
+    wget https://files.nordicsemi.com/artifactory/swtools/external/nrfutil/executables/x86_64-unknown-linux-gnu/nrfutil
     chmod +x nrfutil
     sudo mv nrfutil /usr/local/bin/
     nrfutil install nrf5sdk-tools
