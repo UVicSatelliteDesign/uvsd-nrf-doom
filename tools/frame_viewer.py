@@ -3,7 +3,11 @@
 Ground-station prototype viewer for the nRF5340 Doom frame UART.
 
 Reads packets of the form:
-    SYNC(2B: 0xAA,0x55) | TYPE(1B) | LENGTH(2B LE) | PAYLOAD(NB) | CRC16(2B LE)
+    SYNC(2B: 0xAA,0x55) | TYPE(1B) | LENGTH(4B LE) | PAYLOAD(NB) | CRC16(2B LE)
+
+LENGTH is 4 bytes because RLE is a worst-case 2x expansion (not a guaranteed
+compression), so a 320x200 frame can encode up to 128000 bytes -- too big
+for a 16-bit length.
 
 The only packet type currently sent is DOOM_FRAME (0x02), whose payload is:
     PLAYPAL index(1B) | RLE-encoded 320x200 8-bit palette indices
@@ -13,7 +17,7 @@ only needs to carry a 1-byte palette index per frame (see nrfdoom/source/
 n_frame_uart.c and doom/st_stuff.c:ST_GetPaletteIndex).
 
 Usage:
-    python3 frame_viewer.py --port /dev/ttyUSB0 --baud 1000000
+    python3 frame_viewer.py --port /dev/ttyUSB0 --baud 115200
 """
 
 import argparse
@@ -93,9 +97,9 @@ def decode_rle(payload, expected_len):
 
 def read_packet(ser):
     find_sync(ser)
-    type_len = read_exact(ser, 3)
+    type_len = read_exact(ser, 5)
     ptype = type_len[0]
-    length = struct.unpack_from("<H", type_len, 1)[0]
+    length = struct.unpack_from("<I", type_len, 1)[0]
     payload = read_exact(ser, length)
     crc_bytes = read_exact(ser, 2)
     received_crc = struct.unpack_from("<H", crc_bytes, 0)[0]
@@ -109,7 +113,10 @@ def read_packet(ser):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--port", required=True, help="Serial port, e.g. /dev/ttyUSB0")
-    parser.add_argument("--baud", type=int, default=1_000_000)
+    # 460800 and 1M both drop/corrupt bytes on the DK's shared J-Link VCOM1
+    # bridge (confirmed via CRC + firmware-side ground truth); 115200 is the
+    # only rate that has decoded cleanly on real hardware so far.
+    parser.add_argument("--baud", type=int, default=115_200)
     parser.add_argument("--wad", default="doom1.wad", help="Path to doom1.wad (for PLAYPAL)")
     args = parser.parse_args()
 

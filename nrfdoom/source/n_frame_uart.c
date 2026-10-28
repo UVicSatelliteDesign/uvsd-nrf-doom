@@ -8,7 +8,14 @@
 // CRC16) and a stream file/interface that the encoding code calls into, so
 // that stream file can be swapped for UART or SPI.
 //
-// Packet format: SYNC(2B) | TYPE(1B) | LENGTH(2B LE) | PAYLOAD(NB) | CRC16(2B LE)
+// Packet format: SYNC(2B) | TYPE(1B) | LENGTH(4B LE) | PAYLOAD(NB) | CRC16(2B LE)
+// LENGTH is 4 bytes (not 2) because RLE is a worst-case 2x expansion, not a
+// compression guarantee: a 320x200 frame with no runs longer than 1 pixel
+// encodes to up to 128000 bytes, which does not fit in a uint16_t. A prior
+// version used a 2-byte LENGTH and silently wrapped/truncated on any frame
+// whose encoded size exceeded 65535 bytes (busy, low-compressibility
+// screens like the menu), desyncing every receiver despite the firmware
+// still sending the full, correct payload.
 // PAYLOAD for a DOOM_FRAME packet is: PLAYPAL index(1B) | RLE(pixels)
 // CRC16 (CCITT-FALSE) covers TYPE, LENGTH and PAYLOAD.
 //
@@ -23,7 +30,11 @@ static volatile char frame_uart_tx_buf[1];
 void N_frame_uart_init(void)
 {
     NRF_FRAME_UARTE->PSEL.TXD = UART0_TX_PIN;
-    NRF_FRAME_UARTE->BAUDRATE = UARTE_BAUDRATE_BAUDRATE_Baud1M;
+    // 460800 and 1M both corrupt/drop bytes on this DK's J-Link VCOM1 bridge
+    // (confirmed: CRC failed on every frame, but the same frames decoded
+    // perfectly byte-for-byte at 115200). Don't raise this without re-testing
+    // on real hardware -- it's a link reliability limit, not a config knob.
+    NRF_FRAME_UARTE->BAUDRATE = UARTE_BAUDRATE_BAUDRATE_Baud115200;
     NRF_FRAME_UARTE->CONFIG = 0;
     NRF_FRAME_UARTE->ENABLE = UARTE_ENABLE_ENABLE_Enabled;
     NRF_FRAME_UARTE->EVENTS_ENDTX = 0;
@@ -98,7 +109,7 @@ static void send_byte(uint8_t b, uint16_t *crc)
 void N_frame_uart_send_frame(const uint8_t *pixels, size_t width, size_t height, uint8_t playpal_index)
 {
     size_t npixels = width * height;
-    uint16_t payload_len = (uint16_t)(1 + rle_encoded_size(pixels, npixels));
+    uint32_t payload_len = (uint32_t)(1 + rle_encoded_size(pixels, npixels));
     uint16_t crc = 0xFFFF;
 
     N_frame_uart_putc(FRAME_SYNC0);
@@ -107,6 +118,8 @@ void N_frame_uart_send_frame(const uint8_t *pixels, size_t width, size_t height,
     send_byte(FRAME_TYPE_DOOM_FRAME, &crc);
     send_byte(payload_len & 0xFF, &crc);
     send_byte((payload_len >> 8) & 0xFF, &crc);
+    send_byte((payload_len >> 16) & 0xFF, &crc);
+    send_byte((payload_len >> 24) & 0xFF, &crc);
 
     send_byte(playpal_index, &crc);
 
