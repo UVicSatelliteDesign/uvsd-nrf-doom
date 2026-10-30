@@ -2,11 +2,9 @@
 #define N_SPI_H
 #include <stdbool.h>
 
-#define SPI_CMD_RETRIEVAL_FAILURE 0x15
-
-void spi_init();
-bool spi_has_data();
-char spi_getc();
+void spi_init(void);
+bool spi_has_data(void);
+bool spi_getc(char *output_val);
 void spi_putc(char ch);
 
 #endif
