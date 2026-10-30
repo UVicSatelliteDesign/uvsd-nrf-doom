@@ -45,19 +45,18 @@ void spi_init(void) {
         .miso_drive = NRF_GPIO_PIN_S0S1,   // MISO pin drive set to standard '0' and standard '1'
         .def = 0xFF,                       // default character set to 0xFF
         .orc = 0xFE,                       // over-read character set to 0xFE
-        .irq_priority = 6, // Interrupt priority level 6 (on a scale of 0-7 where 0 is URGENT and 8
-        // is non-critical background tasks)
+        .irq_priority = NRFX_SPIS_DEFAULT_CONFIG_IRQ_PRIORITY, // Interrupt priority level
     };
 
     init_ring_buffer(&tx_ring_buf);
     init_ring_buffer(&rx_ring_buf);
 
     // Add pointer to additional context of any type if necessary in future
-    nrfx_err_t nrfx_spi_init_err =
+    nrfx_err_t spi_init_result =
         nrfx_spis_init(&nrfx_spi, &nrfx_spis_config, spi_event_handler, NULL);
-    nrfx_err_t nrfx_spi_buf_err =
+    nrfx_err_t spi_buf_set_result =
         nrfx_spis_buffers_set(&nrfx_spi, tx_buffer, TX_BUF_LENGTH, rx_buffer, RX_BUF_LENGTH);
-    if (nrfx_spi_buf_err != NRFX_SUCCESS || nrfx_spi_init_err != NRFX_SUCCESS) {
+    if (spi_buf_set_result != NRFX_SUCCESS || spi_init_result != NRFX_SUCCESS) {
         // Flag SPI initialization error
     }
 }
@@ -71,7 +70,8 @@ char spi_getc() {
     if (pop_success)
         return (char)byte;
     else
-        return 0x15; // Warning value resenting a failure to get a command (i.e. buffer is empty)
+        return SPI_CMD_RETRIEVAL_FAILURE; // Warning value resenting a failure to get a command
+                                          // (i.e. buffer is empty)
 }
 
 // If buffer is full there will be no effect
