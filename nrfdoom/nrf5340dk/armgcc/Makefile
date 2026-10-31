@@ -16,6 +16,8 @@ INC_FOLDERS =
 SRC_FILES += \
 	$(PROJ_DIR)/main.c \
 	$(PROJ_DIR)/retarget.c \
+	$(PROJ_DIR)/ring_buffer.c \
+	$(PROJ_DIR)/n_spi.c \
 	$(PROJ_DIR)/n_uart.c \
 	$(PROJ_DIR)/n_frame_uart.c \
 	$(PROJ_DIR)/n_qspi.c \

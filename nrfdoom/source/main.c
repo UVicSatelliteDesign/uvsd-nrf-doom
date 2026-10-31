@@ -46,6 +46,7 @@
 #include "n_display.h"
 
 #include "n_uart.h"
+#include "n_spi.h"
 #include "n_frame_uart.h"
 #include "n_qspi.h"
 #include "n_fs.h"
