@@ -28,6 +28,12 @@ typedef enum {
     DOOM_COMMAND_RESET_GAME = 0x09
 } doom_command_byte_t;
 
+/* Result types for dispatching DOOM commands */
+typedef enum {
+    DOOM_COMMAND_SUCCESS = 0,
+    DOOM_COMMAND_INVALID = 1
+} dispatch_doom_command_result_t;
+
 /* Doom Command handler functions */
 bool handle_keyboard_doom(uint8_t batch_num, uint8_t sequence_num, uint8_t sequence_count, uint8_t size, const uint8_t *keypresses);
 
