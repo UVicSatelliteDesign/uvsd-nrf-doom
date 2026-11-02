@@ -7,6 +7,7 @@
 
 
 #define DOOM_COMMAND_MAX_BODY_SIZE 245
+#define DOOM_COMMAND_HEADER_SIZE 1
 
 /* Keyboard command body layout */
 #define DOOM_KEYBOARD_HEADER_SIZE 4
@@ -17,6 +18,11 @@
 #define DOOM_GAMEPAD_HEADER_SIZE 4
 #define DOOM_GAMEPAD_ENTRY_SIZE 5
 #define DOOM_GAMEPAD_MAX_ENTRIES 48
+
+#define DOOM_COMMAND_EOF_BODY_SIZE 1
+#define DOOM_COMMAND_PLAY_BODY_SIZE 1
+#define DOOM_COMMAND_RESET_BUFFER_BODY_SIZE 1
+#define DOOM_COMMAND_RESET_GAME_BODY_SIZE 1
 
 /* Command bytes used by the ground-station/OBC DOOM command protocol. */
 typedef enum {
@@ -31,7 +37,8 @@ typedef enum {
 /* Result types for dispatching DOOM commands */
 typedef enum {
     DOOM_COMMAND_SUCCESS = 0,
-    DOOM_COMMAND_INVALID = 1
+    DOOM_COMMAND_INVALID = 1,
+    DOOM_COMMAND_HANDLER_FAILED = 2,
 } dispatch_doom_command_result_t;
 
 /* Doom Command handler functions */
