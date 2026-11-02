@@ -73,7 +73,6 @@ dispatch_doom_command_result_t dispatch_doom_command(const uint8_t *doom_command
                 return DOOM_COMMAND_INVALID;
             }
             
-            
             uint8_t batch = body[0];
 
             if (!handle_eof_doom(batch)) {
@@ -123,6 +122,8 @@ dispatch_doom_command_result_t dispatch_doom_command(const uint8_t *doom_command
             }
             return DOOM_COMMAND_SUCCESS;
         }
+        default:
+            return DOOM_COMMAND_INVALID;
 
     }
 }
