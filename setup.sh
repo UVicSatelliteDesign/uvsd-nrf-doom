@@ -131,7 +131,15 @@ fi
 if ! command -v nrfutil >/dev/null 2>&1; then
     info "Installing ${Dim}nrfutil${Color_Off}"
 
-    nrfutil_url="https://developer.nordicsemi.com/.pc-tools/nrfutil/x64-linux/nrfutil"
+    # Nordic moved the nrfutil downloads; the old developer.nordicsemi.com
+    # .pc-tools URLs answer 403. Pick this machine's build.
+    case "$(uname -s)-$(uname -m)" in
+        Linux-x86_64) nrfutil_target="x86_64-unknown-linux-gnu" ;;
+        Linux-aarch64|Linux-arm64) nrfutil_target="aarch64-unknown-linux-gnu" ;;
+        Darwin-*) nrfutil_target="universal-apple-darwin" ;;
+        *) error "No nrfutil download for $(uname -s) $(uname -m); install it from https://www.nordicsemi.com/Products/Development-tools/nRF-Util" ;;
+    esac
+    nrfutil_url="https://files.nordicsemi.com/artifactory/swtools/external/nrfutil/executables/$nrfutil_target/nrfutil"
     download "$nrfutil_url" "$temp_space/nrfutil" || \
         error "Failed to download ${Dim}nrfutil${Color_Off} from \"$nrfutil_url\""
 
