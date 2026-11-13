@@ -153,7 +153,7 @@ bool reset_doom_buffer(uint8_t batch_num) {
     return true;
 }
 
-bool reset_doom_game(uint8_t batch_num) {
+bool reset_doom_game() {
     /* TODO: Implement reset game command handling */
     return true;
 }
