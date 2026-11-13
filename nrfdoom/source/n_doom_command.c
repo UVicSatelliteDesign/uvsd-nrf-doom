@@ -115,9 +115,7 @@ dispatch_doom_command_result_t dispatch_doom_command(const uint8_t *doom_command
                 return DOOM_COMMAND_INVALID;
             }
 
-            uint8_t batch = body[0];
-
-            if (!reset_doom_game(batch)) {
+            if (!reset_doom_game()) {
                 return DOOM_COMMAND_HANDLER_FAILED;
             }
             return DOOM_COMMAND_SUCCESS;
