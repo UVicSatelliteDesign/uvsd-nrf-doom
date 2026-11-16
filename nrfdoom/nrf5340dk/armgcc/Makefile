@@ -23,6 +23,7 @@ SRC_FILES += \
 	$(PROJ_DIR)/n_qspi.c \
 	$(PROJ_DIR)/n_fs.c \
 	$(PROJ_DIR)/n_mem.c \
+	$(PROJ_DIR)/n_doom_command.c \
 	$(PROJ_DIR)/n_buttons.c \
  	$(PROJ_DIR)/n_display.c \
 	$(PROJ_DIR)/n_rjoy.c \
