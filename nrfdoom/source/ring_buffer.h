@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#define RING_BUFFER_SIZE 64
+#define RING_BUFFER_SIZE 1024
 
 typedef struct {
     uint8_t buffer[RING_BUFFER_SIZE];
@@ -19,6 +19,9 @@ bool ring_buffer_is_empty(const ring_buffer_t *rb);
 
 // Test if ring buffer is full
 bool ring_buffer_is_full(const ring_buffer_t *rb);
+
+// Check available space within ring buffer
+size_t ring_buffer_get_space(const ring_buffer_t *rb);
 
 // Write to ring buffer head. Returns true on success and false if full
 bool ring_buffer_add(ring_buffer_t *rb, uint8_t input_val);
