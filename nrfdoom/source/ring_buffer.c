@@ -16,6 +16,20 @@ bool ring_buffer_is_full(const ring_buffer_t *rb) {
     return (rb->tail == (rb->head + 1) % RING_BUFFER_SIZE);
 }
 
+// Check available space within ring buffer
+size_t ring_buffer_get_space(const ring_buffer_t *rb){
+  if (rb == NULL)
+    return 0;
+  size_t head = rb->head;
+  size_t tail = rb->tail;
+  if (head >= tail) {
+    return (RING_BUFFER_SIZE - 1) - (head - tail);
+  }
+  else {
+    return (tail - 1) - head;
+  }
+}
+
 // Write to ring buffer head. Returns true on success and false if full
 bool ring_buffer_add(ring_buffer_t *rb, uint8_t input_val) {
     if (ring_buffer_is_full(rb))
