@@ -1,6 +1,10 @@
 UVSD-DOOM
 =========
 
+.. image:: https://github.com/UVicSatelliteDesign/uvsd-nrf-doom/actions/workflows/ci.yml/badge.svg?branch=master
+   :target: https://github.com/UVicSatelliteDesign/uvsd-nrf-doom/actions/workflows/ci.yml
+   :alt: CI
+
 For a guide on compilation see `HOW_TO_COMPILE.md`
 
 
